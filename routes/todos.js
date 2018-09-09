@@ -13,9 +13,9 @@ const connection = mysql.createConnection({
 //   if (err) throw err;
 // });
 
-// connection.query('DROP DATABASE IF EXISTS tododb', function (err, rows, fields) {
-//   if (err) throw err
-// })
+connection.query('DROP DATABASE IF EXISTS tododb', function (err, rows, fields) {
+  if (err) throw err
+})
 
 connection.query('CREATE DATABASE IF NOT EXISTS tododb', function (err, rows, fields) {
   if (err) throw err
@@ -25,7 +25,7 @@ connection.query('USE tododb', function (err, rows, fields) {
   if (err) throw err
 })
 
-// const sqldrop = "DROP TABLE IF EXISTS todolist";
+// const sqldrop = "DROP TABLE IF EXISTS todo";
 // connection.query(sqldrop, function (err, result) {
 //   if (err) throw err;
 // });
@@ -35,12 +35,12 @@ connection.query('USE tododb', function (err, rows, fields) {
 //   if (err) throw err;
 // });
 
-const sqlcreatetodolist = "CREATE TABLE IF NOT EXISTS todolist (idkey SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, id VARCHAR(50) NOT NULL, title VARCHAR(255) NOT NULL, KEY(id))";
-connection.query(sqlcreatetodolist, function (err, result) {
+const sqlcreatetodo = "CREATE TABLE IF NOT EXISTS todo (id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, todouuid VARCHAR(50) NOT NULL, title VARCHAR(255) NOT NULL, KEY(todouuid))";
+connection.query(sqlcreatetodo, function (err, result) {
   if (err) throw err;
 });
 
-const sqlcreatetasks = "CREATE TABLE IF NOT EXISTS tasks (idkey SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, id VARCHAR(50) NOT NULL, text VARCHAR(255), listid VARCHAR(50), KEY(listid) )";
+const sqlcreatetasks = "CREATE TABLE IF NOT EXISTS tasks (id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, uuid VARCHAR(50) NOT NULL, text VARCHAR(255), todouuid VARCHAR(50), KEY(todouuid) )";
 connection.query(sqlcreatetasks, function (err, result) {
   if (err) throw err;
 });
@@ -50,7 +50,7 @@ connection.query(sqlcreatetasks, function (err, result) {
 //   console.log(rows);
 // })
 
-// connection.query('DESCRIBE todolist', function (err, rows, fields) {
+// connection.query('DESCRIBE todo', function (err, rows, fields) {
 //   if (err) throw err
 //   console.log(rows)
 // })
@@ -63,7 +63,7 @@ connection.query(sqlcreatetasks, function (err, result) {
 
 //connection.end()
 
-// const sqlinsert = "INSERT INTO todolist (id, title) VALUES ('76e4f98a-59aa-47bd-aef0-ab89a4124043', 'List 1')," +
+// const sqlinsert = "INSERT INTO todo (id, title) VALUES ('76e4f98a-59aa-47bd-aef0-ab89a4124043', 'List 1')," +
 //   "('7973d567-dba1-452b-8468-ef27d3138fae', 'List 2')";
 
 // connection.query(sqlinsert, function (err, result) {
@@ -90,42 +90,42 @@ asyncQuery = (query, args) => {
 }
 
 router.get('/', function (req, res, next) {
-  let todolist, tasks;
+  let todo, tasks;
 
-  asyncQuery('SELECT id, title FROM todolist')
+  asyncQuery('SELECT todouuid, title FROM todo')
     .then(rows => {
-      todolist = rows;
-      return asyncQuery('SELECT id, text, listid FROM tasks');
+      todo = rows;
+      return asyncQuery('SELECT uuid, text, todouuid FROM tasks');
     })
     .then(rows => {
       tasks = rows;
     })
     .then(() => {
 
-      for (i = 0; i < todolist.length; i++) {
-        todolist[i].tasks = [];
+      for (i = 0; i < todo.length; i++) {
+        todo[i].tasks = [];
       }
 
-      for (i = 0; i < todolist.length; i++) {
+      for (i = 0; i < todo.length; i++) {
         for (j = 0; j < tasks.length; j++) {
-          if (todolist[i].id === tasks[j].listid)
-            todolist[i].tasks.push({ id: tasks[j].id, text: tasks[j].text });
+          if (todo[i].todouuid === tasks[j].todouuid)
+            todo[i].tasks.push({ uuid: tasks[j].uuid, text: tasks[j].text });
         }
       }
 
-      res.send(todolist);
+      res.send(todo);
     });
 });
 
 router.post('/', function (req, res) {
   const title = req.body.title;
-  const id = req.body.id;
+  const todouuid = req.body.todouuid;
   const tasks = req.body.tasks;
 
-  asyncQuery(`INSERT INTO todolist (id, title) VALUES("${id}", "${title}")`)
+  asyncQuery(`INSERT INTO todo (todouuid, title) VALUES("${todouuid}", "${title}")`)
     .then(() => {
       tasks.forEach(element => {
-        asyncQuery(`INSERT INTO tasks (id, text, listid) VALUES("${element.id}", "${element.text}", "${id}")`);
+        asyncQuery(`INSERT INTO tasks (uuid, text, todouuid) VALUES("${element.uuid}", "${element.text}", "${todouuid}")`);
       });
     })
 
@@ -134,28 +134,28 @@ router.post('/', function (req, res) {
 
 router.put('/', (req, res) => {
   const title = req.body.title;
-  const id = req.body.id;
+  const todouuid = req.body.todouuid;
   const tasks = req.body.tasks;
 
-  asyncQuery(`DELETE FROM tasks WHERE listid LIKE "%${id}%"`)
+  asyncQuery(`DELETE FROM tasks WHERE todouuid LIKE "%${todouuid}%"`)
     .then(() => {
       tasks.forEach(element => {
-        asyncQuery(`INSERT INTO tasks (id, text, listid) VALUES("${element.id}", "${element.text}", '${id}')`);
+        asyncQuery(`INSERT INTO tasks (uuid, text, todouuid) VALUES("${element.uuid}", "${element.text}", '${todouuid}')`);
       });
     })
     .then(() => {
-      asyncQuery(`UPDATE todolist SET title = "${title}" WHERE id LIKE "%${id}%"`);
+      asyncQuery(`UPDATE todo SET title = "${title}" WHERE todouuid LIKE "%${todouuid}%"`);
     })
 
   res.json();
 });
 
 router.delete('/', function (req, res) {
-  const id = req.body.id;
+  const todouuid = req.body.todouuid;
 
-  asyncQuery(`DELETE FROM todolist WHERE id LIKE '%${id}%'`)
+  asyncQuery(`DELETE FROM todo WHERE todouuid LIKE '%${todouuid}%'`)
     .then(() => {
-      asyncQuery(`DELETE FROM tasks WHERE listid LIKE '%${id}%'`)
+      asyncQuery(`DELETE FROM tasks WHERE todouuid LIKE '%${todouuid}%'`)
     })
 
   res.json();

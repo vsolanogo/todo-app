@@ -26,14 +26,14 @@ class TodoDashboard extends Component {
     this.deleteTodo(todoId);
   }
 
-  deleteTodo = (todoId) => {
+  deleteTodo = (id) => {
     const data = {
-      id: todoId
+      todouuid: id
     };
 
     this.setState(prevState => {
       return {
-        todos: prevState.todos.filter(t => t.id !== data.id)
+        todos: prevState.todos.filter(t => t.todouuid !== data.todouuid)
       }
     });  
 
@@ -60,7 +60,7 @@ class TodoDashboard extends Component {
     // {id: "17c313fd-4ebc-48b9-ab73-366375a97891", title: "1", tasks: Array(1)}
 
     const data = {
-      id: attrs.id ,
+      todouuid: attrs.todouuid ,
       title: attrs.title,
       tasks: attrs.tasks,
     };
@@ -68,7 +68,7 @@ class TodoDashboard extends Component {
     this.setState(prevState => {
       return {
         todos: prevState.todos.map((todo) => {
-          if (todo.id === attrs.id) {
+          if (todo.todouuid === attrs.todouuid) {
             return Object.assign({}, todo, {
               title: attrs.title,
               tasks: attrs.tasks,
@@ -94,7 +94,7 @@ class TodoDashboard extends Component {
   createTodo = (todo) => {
     const data = {
       title: todo.title || 'Todo',
-      id: uuidv4(),
+      todouuid: uuidv4(),
       tasks: todo.tasks,
     };
 
@@ -102,7 +102,7 @@ class TodoDashboard extends Component {
       return {
         todos: prevState.todos.concat(data),
       }
-    });
+    }); 
 
     fetch('/todos', {
       method: 'post',
@@ -186,8 +186,8 @@ class EditableTodoList extends React.Component {
   render() {
     const todos = this.props.todos.map((todo) => (
       <EditableTodo
-        key={todo.id}
-        id={todo.id}
+        key={todo.todouuid}
+        todouuid={todo.todouuid}
         title={todo.title}
         tasks={todo.tasks}
         onFormSubmit={this.props.onFormSubmit}
@@ -233,7 +233,7 @@ class EditableTodo extends React.Component {
     if (this.state.editFormOpen) {
       return (
         <TodoForm
-          id={this.props.id}
+          todouuid={this.props.todouuid}
           title={this.props.title}
           tasks={this.props.tasks}
           onFormSubmit={this.handleSubmit}
@@ -243,7 +243,7 @@ class EditableTodo extends React.Component {
     } else {
       return (
         <Todo
-          id={this.props.id}
+          todouuid={this.props.todouuid}
           title={this.props.title}
           tasks={this.props.tasks}
           onEditClick={this.handleEditClick}
@@ -256,7 +256,7 @@ class EditableTodo extends React.Component {
 
 class Todo extends React.Component {
   handleTrashClick = () => {
-    this.props.onTrashClick(this.props.id);
+    this.props.onTrashClick(this.props.todouuid);
   };
 
   render() {
@@ -296,8 +296,8 @@ class TaskFormList extends React.Component {
     if (this.props.tasks) {
     tasks = this.props.tasks.map((task) => (
       <TaskForm
-        id={task.id}
-        key={task.id}
+        uuid={task.uuid}
+        key={task.uuid}
         text={task.text}
         onTaskDelete={this.props.handleTaskDelete}
         onTaskTextChange={this.props.handleTaskTextChange} 
@@ -320,9 +320,10 @@ class TodoForm extends React.Component {
   };
 
   handleTaskDelete = (taskId) => {
+    
     this.setState(prevState => {
       return {
-        tasks: prevState.tasks.filter(t => t.id !== taskId)
+        tasks: prevState.tasks.filter(t => t.uuid !== taskId)//////////////////////////////////////////////////////////////////////////////////////////////////////////
       }
     });
   }
@@ -335,7 +336,7 @@ class TodoForm extends React.Component {
     this.setState(prevState => {
       return {
         tasks: prevState.tasks.map((element) => {
-          if (element.id === attrs.id) {
+          if (element.uuid === attrs.uuid) {
             return Object.assign({}, element, {
               text: attrs.text,
             })
@@ -354,7 +355,7 @@ class TodoForm extends React.Component {
 
   handleSubmit = () => {
     this.props.onFormSubmit({
-      id: this.props.id,
+      todouuid: this.props.todouuid,
       title: this.state.title,
       tasks: this.state.tasks,
     });
@@ -367,9 +368,9 @@ class TodoForm extends React.Component {
   addElement = (attr) => {
     const t = {
       text: attr.text,
-      id: uuidv4(),
+      uuid: uuidv4(),
     };
-
+    
     this.setState(prevState => {
       return {
         tasks: prevState.tasks.concat(t),
@@ -379,7 +380,7 @@ class TodoForm extends React.Component {
 
   render() {  
 
-    const submitText = this.props.id ? 'Update' : 'Create';
+    const submitText = this.props.todouuid ? 'Update' : 'Create';
 
     return (
       <div className='ui centered card'>
@@ -433,7 +434,7 @@ class TaskForm extends React.Component {
   }
 
   handleTaskDelete = () => {
-    this.props.onTaskDelete(this.props.id)
+    this.props.onTaskDelete(this.props.uuid)
   };
 
   handleTextChange = (e) => {
@@ -442,7 +443,7 @@ class TaskForm extends React.Component {
 
   handleTaskTextChange = () => {
     this.props.onTaskTextChange({
-      id: this.props.id,
+      uuid: this.props.uuid,
       text: this.state.text,
     })
   };
@@ -563,7 +564,7 @@ class TasksList extends React.Component {
     const tasks = this.props.tasks.map((task) => (
       <div
         className="ui segment"
-        key={task.id}
+        key={task.uuid}
       >
         <p>{task.text}</p>
       </div>
