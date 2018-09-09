@@ -13,13 +13,13 @@ const connection = mysql.createConnection({
 //   if (err) throw err;
 // });
 
-connection.query('DROP DATABASE IF EXISTS tododb', function (err, rows, fields) {
-  if (err) throw err
-})
+// connection.query('DROP DATABASE IF EXISTS tododb', function (err, rows, fields) {
+//   if (err) throw err
+// })
 
-connection.query('CREATE DATABASE IF NOT EXISTS tododb', function (err, rows, fields) {
-  if (err) throw err
-})
+// connection.query('CREATE DATABASE IF NOT EXISTS tododb', function (err, rows, fields) {
+//   if (err) throw err
+// })
 
 connection.query('USE tododb', function (err, rows, fields) {
   if (err) throw err
